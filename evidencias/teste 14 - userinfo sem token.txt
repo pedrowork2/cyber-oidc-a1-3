@@ -1,0 +1,98 @@
+(.venv) C:\Users\Pedro\Desktop\Trabalho cyber>python scripts\teste_userinfo_google.py
+
+========================================================================
+Descoberta OIDC do Google
+========================================================================
+issuer                                   https://accounts.google.com
+authorization_endpoint                   https://accounts.google.com/o/oauth2/v2/auth
+token_endpoint                           https://oauth2.googleapis.com/token
+userinfo_endpoint                        https://openidconnect.googleapis.com/v1/userinfo
+jwks_uri                                 https://www.googleapis.com/oauth2/v3/certs
+code_challenge_methods_supported         ['plain', 'S256']
+id_token_signing_alg_values_supported    ['RS256']
+token_endpoint_auth_methods_supported    ['client_secret_post', 'client_secret_basic']
+
+========================================================================
+JWKS (chaves públicas de assinatura)
+========================================================================
+kid=943a3a5d7d919625a454e489b75c29adab57acba  kty=RSA  use=sig  alg=RS256  n=pIpnzA2ezyEERJSxiqpLBmMe…
+kid=9e7b714e8bfb4ef03bac2570eb322bfb7d686ee9  kty=RSA  use=sig  alg=RS256  n=7O_xgke58DhpSDJRmIMm-u4f…
+
+========================================================================
+Teste 14a sem token — Google — userinfo da descoberta
+GET https://openidconnect.googleapis.com/v1/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: None
+{
+  "error": "invalid_request",
+  "error_description": "Invalid Credentials"
+}
+RESULTADO: 401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+
+========================================================================
+Teste 14b token inválido/expirado — Google — userinfo da descoberta
+GET https://openidconnect.googleapis.com/v1/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: None
+{
+  "error": "invalid_request",
+  "error_description": "Invalid Credentials"
+}
+RESULTADO: 401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+
+========================================================================
+Teste 14a sem token — Google — oauth2/v3/userinfo
+GET https://www.googleapis.com/oauth2/v3/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: None
+{
+  "error": "invalid_request",
+  "error_description": "Invalid Credentials"
+}
+RESULTADO: 401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+
+========================================================================
+Teste 14b token inválido/expirado — Google — oauth2/v3/userinfo
+GET https://www.googleapis.com/oauth2/v3/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: None
+{
+  "error": "invalid_request",
+  "error_description": "Invalid Credentials"
+}
+RESULTADO: 401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+
+========================================================================
+Teste 14a sem token — Aplicação — /api/userinfo (RFC 6750)
+GET https://localhost:8443/api/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: Bearer realm="app-oidc-33506"
+{}
+RESULTADO: OK — 401 + WWW-Authenticate: Bearer
+
+========================================================================
+Teste 14b token inválido/expirado — Aplicação — /api/userinfo (RFC 6750)
+GET https://localhost:8443/api/userinfo
+========================================================================
+HTTP 401
+WWW-Authenticate: Bearer realm="app-oidc-33506", error="invalid_token", error_description="token invalido ou expirado"
+{
+  "error": "invalid_token",
+  "error_description": "token invalido ou expirado"
+}
+RESULTADO: OK — 401 + WWW-Authenticate: Bearer
+
+========================================================================
+Resumo do teste 14
+========================================================================
+14a sem token                  Google — userinfo da descoberta          401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+14b token inválido/expirado    Google — userinfo da descoberta          401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+14a sem token                  Google — oauth2/v3/userinfo              401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+14b token inválido/expirado    Google — oauth2/v3/userinfo              401, mas SEM WWW-Authenticate (fora do RFC 6750 §3)
+14a sem token                  Aplicação — /api/userinfo (RFC 6750)     OK — 401 + WWW-Authenticate: Bearer
+14b token inválido/expirado    Aplicação — /api/userinfo (RFC 6750)     OK — 401 + WWW-Authenticate: Bearer

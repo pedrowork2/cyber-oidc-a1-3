@@ -249,7 +249,8 @@ def validate_id_token(
         fail(7, "iat", "iat ausente ou não numérico")
     if iat > now + clock_skew:
         fail(7, "iat", f"iat {int(iat - now)} s no futuro (tolerância {clock_skew} s)")
-    report.add(7, "iat", True, f"emitido há {int(now - iat)} s")
+    report.add(7, "iat", True, f"emitido há {int(now - iat)} s" if iat <= now
+               else f"iat {int(iat - now)} s à frente do relógio local (dentro da tolerância)")
 
     # --- 8. nonce -------------------------------------------------------------
     if not constant_time_equals(claims.get("nonce"), nonce):
@@ -408,6 +409,20 @@ class GoogleProvider:
             raise ProviderError("token_endpoint recusou a troca",
                                 oauth_error=body.get("error"), status=resp.status_code, body=body)
         return body
+
+    TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo"
+
+    def tokeninfo(self, access_token: str) -> dict:
+        """Introspecção do access token opaco do Google (para que client foi emitido,
+        validade). O token vai no corpo do POST, nunca na URL."""
+        try:
+            resp = self.http.post(self.TOKENINFO_URL, data={"access_token": access_token},
+                                  timeout=self.config.http_timeout)
+        except requests.RequestException as exc:
+            raise ProviderError(f"falha de rede no tokeninfo: {type(exc).__name__}") from None
+        if resp.status_code != 200:
+            raise ProviderError("token inválido ou expirado", status=resp.status_code)
+        return resp.json()
 
     def userinfo(self, access_token: str) -> dict:
         try:

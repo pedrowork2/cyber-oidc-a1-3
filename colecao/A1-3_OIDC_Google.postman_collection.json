@@ -492,6 +492,39 @@
               "type": "noauth"
             }
           }
+        },
+        {
+          "name": "Teste 14a — /api/userinfo sem token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/api/userinfo"
+            },
+            "description": "Esperado: 401 + WWW-Authenticate: Bearer realm=\"app-oidc-33506\".",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Teste 14b — /api/userinfo com token inválido",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer ya29.invalido"
+              }
+            ],
+            "url": {
+              "raw": "{{app}}/api/userinfo"
+            },
+            "description": "Esperado: 401 + WWW-Authenticate: Bearer ..., error=\"invalid_token\".",
+            "auth": {
+              "type": "noauth"
+            }
+          }
         }
       ]
     }

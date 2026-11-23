@@ -1,0 +1,67 @@
+(.venv) C:\Users\Pedro\Desktop\Trabalho cyber>pytest -v -s tests\test_id_token.py
+=============================================================== test session starts ===============================================================
+platform win32 -- Python 3.14.2, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\Pedro\Desktop\Trabalho cyber\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Pedro\Desktop\Trabalho cyber
+collected 22 items
+
+tests/test_id_token.py::test_token_valido_passa_em_todo_o_checklist PASSED
+tests/test_id_token.py::test_iss_na_forma_sem_https_tambem_aceita PASSED
+tests/test_id_token.py::test_01_alg_none_rejeitado
+    -> REJEITADO: [alg na lista fixa] alg='none' rejeitado ("none" nunca é aceito)
+PASSED
+tests/test_id_token.py::test_01b_alg_None_variacao_de_caixa_rejeitado
+    -> REJEITADO: [alg na lista fixa] alg='NoNe' rejeitado ("none" nunca é aceito)
+PASSED
+tests/test_id_token.py::test_02_hs256_reassinado_com_chave_publica_rejeitado
+    -> REJEITADO: [alg na lista fixa] alg='HS256' fora da lista aceita ['RS256']
+PASSED
+tests/test_id_token.py::test_03_aud_de_outro_client_id_rejeitado
+    -> REJEITADO: [aud] aud=['outro-cliente.apps.googleusercontent.com'] não contém o client_id desta aplicação
+PASSED
+tests/test_id_token.py::test_04_iss_diferente_rejeitado
+    -> REJEITADO: [iss] iss='https://evil.example' diferente do emissor esperado ['https://accounts.google.com', 'accounts.google.com']
+PASSED
+tests/test_id_token.py::test_05_exp_vencido_rejeitado
+    -> REJEITADO: [exp] token expirado há 600 s (tolerância 120 s)
+PASSED
+tests/test_id_token.py::test_06_iat_no_futuro_rejeitado
+    -> REJEITADO: [iat] iat 3599 s no futuro (tolerância 120 s)
+PASSED
+tests/test_id_token.py::test_07_nonce_diferente_rejeitado
+    -> REJEITADO: [nonce] nonce do token diferente do enviado em /authorize
+PASSED
+tests/test_id_token.py::test_12_um_byte_alterado_na_assinatura_rejeitado
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_payload_alterado_mantendo_assinatura_rejeitado
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_kid_desconhecido_e_erro
+    -> REJEITADO: [assinatura (kid/JWKS)] kid='kid-inexistente' não encontrado no JWKS do emissor
+PASSED
+tests/test_id_token.py::test_sem_kid_rejeitado
+    -> REJEITADO: [assinatura (kid/JWKS)] cabeçalho sem kid
+PASSED
+tests/test_id_token.py::test_assinado_por_outra_chave_rejeitado
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_alg_fora_da_lista_rs512_rejeitado
+    -> REJEITADO: [alg na lista fixa] alg='RS512' fora da lista aceita ['RS256']
+PASSED
+tests/test_id_token.py::test_aud_multipla_sem_azp_rejeitado
+    -> REJEITADO: [azp] aud com vários valores exige azp
+PASSED
+tests/test_id_token.py::test_aud_multipla_com_azp_de_outro_rejeitado
+    -> REJEITADO: [azp] azp='outro' diferente do client_id
+PASSED
+tests/test_id_token.py::test_aud_multipla_com_azp_correto_aceito PASSED
+tests/test_id_token.py::test_exp_dentro_da_tolerancia_aceito PASSED
+tests/test_id_token.py::test_sem_nonce_rejeitado
+    -> REJEITADO: [nonce] nonce do token diferente do enviado em /authorize
+PASSED
+tests/test_id_token.py::test_formato_invalido_rejeitado
+    -> REJEITADO: [formato] JWS compacto deve ter exatamente 3 partes
+PASSED
+
+=============================================================== 22 passed in 0.14s ================================================================

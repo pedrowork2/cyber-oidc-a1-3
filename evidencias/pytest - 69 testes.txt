@@ -1,0 +1,119 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\Pedro\Desktop\Trabalho cyber\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Pedro\Desktop\Trabalho cyber
+collecting ... collected 69 items
+
+tests/test_api_bearer.py::test_14a_sem_token_401_com_www_authenticate 
+    -> 401 Bearer realm="app-oidc-33506"
+PASSED
+tests/test_api_bearer.py::test_14b_token_invalido_ou_expirado_401_invalid_token 
+    -> 401 Bearer realm="app-oidc-33506", error="invalid_token", error_description="token invalido ou expirado"
+PASSED
+tests/test_api_bearer.py::test_14c_token_expirado_segundo_tokeninfo_401 PASSED
+tests/test_api_bearer.py::test_token_de_outro_cliente_401 PASSED
+tests/test_api_bearer.py::test_authorization_malformado_400 PASSED
+tests/test_api_bearer.py::test_token_valido_200_com_sub PASSED
+tests/test_demo.py::test_demo_reuso_code_registra_recusa PASSED
+tests/test_fluxo.py::test_login_completo_cria_sessao_e_vincula_por_sub PASSED
+tests/test_fluxo.py::test_cookie_de_sessao_seguro PASSED
+tests/test_fluxo.py::test_session_id_rotacionado_no_login PASSED
+tests/test_fluxo.py::test_sessao_no_banco_guarda_apenas_hash_do_sid PASSED
+tests/test_fluxo.py::test_mesmo_sub_com_email_diferente_e_o_mesmo_usuario PASSED
+tests/test_fluxo.py::test_email_igual_com_sub_diferente_nao_reaproveita_conta PASSED
+tests/test_fluxo.py::test_08_state_divergente_aborta_antes_da_troca PASSED
+tests/test_fluxo.py::test_08_state_ausente_aborta_antes_da_troca PASSED
+tests/test_fluxo.py::test_08_state_repetido_aborta PASSED
+tests/test_fluxo.py::test_iss_do_callback_rfc9207_de_outro_emissor_aborta PASSED
+tests/test_fluxo.py::test_iss_do_callback_correto_aceito PASSED
+tests/test_fluxo.py::test_log_de_acesso_nao_grava_code_nem_state PASSED
+tests/test_fluxo.py::test_callback_sem_transacao_de_login PASSED
+tests/test_fluxo.py::test_state_e_de_uso_unico PASSED
+tests/test_fluxo.py::test_code_verifier_enviado_corresponde_ao_challenge PASSED
+tests/test_fluxo.py::test_id_token_rejeitado_nao_cria_sessao PASSED
+tests/test_fluxo.py::test_10_userinfo_com_sub_diferente_rejeita_login PASSED
+tests/test_fluxo.py::test_access_denied_mensagem_amigavel_sem_sessao PASSED
+tests/test_fluxo.py::test_auto_provision_desligado_recusa_usuario_desconhecido PASSED
+tests/test_fluxo.py::test_email_nao_verificado_nao_cria_conta PASSED
+tests/test_fluxo.py::test_hd_restringe_dominio PASSED
+tests/test_fluxo.py::test_13_admin_com_role_user_retorna_403 PASSED
+tests/test_fluxo.py::test_admin_sem_login_retorna_401 PASSED
+tests/test_fluxo.py::test_admin_com_role_admin_retorna_200 PASSED
+tests/test_fluxo.py::test_role_revalidado_a_cada_requisicao PASSED
+tests/test_fluxo.py::test_logout_invalida_sessao_no_servidor PASSED
+tests/test_fluxo.py::test_logout_sem_csrf_recusado PASSED
+tests/test_fluxo.py::test_sessao_expira_por_inatividade PASSED
+tests/test_fluxo.py::test_sessao_expira_pelo_tempo_absoluto PASSED
+tests/test_fluxo.py::test_15_rate_limiting_no_login 
+    -> status das 8 tentativas: [302, 302, 302, 302, 302, 429, 429, 429]
+PASSED
+tests/test_fluxo.py::test_cabecalhos_de_seguranca PASSED
+tests/test_fluxo.py::test_demo_desligado_por_padrao PASSED
+tests/test_fluxo.py::test_demo_redirect_uri_adulterada PASSED
+tests/test_id_token.py::test_token_valido_passa_em_todo_o_checklist PASSED
+tests/test_id_token.py::test_iss_na_forma_sem_https_tambem_aceita PASSED
+tests/test_id_token.py::test_01_alg_none_rejeitado 
+    -> REJEITADO: [alg na lista fixa] alg='none' rejeitado ("none" nunca é aceito)
+PASSED
+tests/test_id_token.py::test_01b_alg_None_variacao_de_caixa_rejeitado 
+    -> REJEITADO: [alg na lista fixa] alg='NoNe' rejeitado ("none" nunca é aceito)
+PASSED
+tests/test_id_token.py::test_02_hs256_reassinado_com_chave_publica_rejeitado 
+    -> REJEITADO: [alg na lista fixa] alg='HS256' fora da lista aceita ['RS256']
+PASSED
+tests/test_id_token.py::test_03_aud_de_outro_client_id_rejeitado 
+    -> REJEITADO: [aud] aud=['outro-cliente.apps.googleusercontent.com'] não contém o client_id desta aplicação
+PASSED
+tests/test_id_token.py::test_04_iss_diferente_rejeitado 
+    -> REJEITADO: [iss] iss='https://evil.example' diferente do emissor esperado ['https://accounts.google.com', 'accounts.google.com']
+PASSED
+tests/test_id_token.py::test_05_exp_vencido_rejeitado 
+    -> REJEITADO: [exp] token expirado há 600 s (tolerância 120 s)
+PASSED
+tests/test_id_token.py::test_06_iat_no_futuro_rejeitado 
+    -> REJEITADO: [iat] iat 3599 s no futuro (tolerância 120 s)
+PASSED
+tests/test_id_token.py::test_07_nonce_diferente_rejeitado 
+    -> REJEITADO: [nonce] nonce do token diferente do enviado em /authorize
+PASSED
+tests/test_id_token.py::test_12_um_byte_alterado_na_assinatura_rejeitado 
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_payload_alterado_mantendo_assinatura_rejeitado 
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_kid_desconhecido_e_erro 
+    -> REJEITADO: [assinatura (kid/JWKS)] kid='kid-inexistente' não encontrado no JWKS do emissor
+PASSED
+tests/test_id_token.py::test_sem_kid_rejeitado 
+    -> REJEITADO: [assinatura (kid/JWKS)] cabeçalho sem kid
+PASSED
+tests/test_id_token.py::test_assinado_por_outra_chave_rejeitado 
+    -> REJEITADO: [assinatura (kid/JWKS)] assinatura inválida para kid=kid-teste-2026
+PASSED
+tests/test_id_token.py::test_alg_fora_da_lista_rs512_rejeitado 
+    -> REJEITADO: [alg na lista fixa] alg='RS512' fora da lista aceita ['RS256']
+PASSED
+tests/test_id_token.py::test_aud_multipla_sem_azp_rejeitado 
+    -> REJEITADO: [azp] aud com vários valores exige azp
+PASSED
+tests/test_id_token.py::test_aud_multipla_com_azp_de_outro_rejeitado 
+    -> REJEITADO: [azp] azp='outro' diferente do client_id
+PASSED
+tests/test_id_token.py::test_aud_multipla_com_azp_correto_aceito PASSED
+tests/test_id_token.py::test_exp_dentro_da_tolerancia_aceito PASSED
+tests/test_id_token.py::test_sem_nonce_rejeitado 
+    -> REJEITADO: [nonce] nonce do token diferente do enviado em /authorize
+PASSED
+tests/test_id_token.py::test_formato_invalido_rejeitado 
+    -> REJEITADO: [formato] JWS compacto deve ter exatamente 3 partes
+PASSED
+tests/test_provider.py::test_token_real_validado_com_chave_do_jwks PASSED
+tests/test_provider.py::test_rotacao_de_chave_recarrega_jwks PASSED
+tests/test_provider.py::test_kid_desconhecido_nao_forca_recarga_em_rajada PASSED
+tests/test_provider.py::test_jwks_ignora_chaves_que_nao_sao_rsa_de_assinatura PASSED
+tests/test_provider.py::test_troca_do_code_usa_client_secret_basic_e_parametros_corretos PASSED
+tests/test_provider.py::test_invalid_grant_vira_provider_error PASSED
+tests/test_provider.py::test_falha_de_rede_nao_repete_a_troca PASSED
+
+============================= 69 passed in 2.13s ==============================

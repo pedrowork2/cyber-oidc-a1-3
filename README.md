@@ -70,7 +70,7 @@ Outra forma: coloque o `sub` em `ADMIN_SUBS` no `.env` antes do primeiro login.
 ## 5. Testes
 
 ```powershell
-pytest -v                                   # todos os 59 testes (sem rede)
+pytest -v                                   # todos os 69 testes (sem rede)
 pytest -v -s tests/test_id_token.py         # testes negativos do ID Token, mostrando o motivo da rejeição
 python scripts\teste_userinfo_google.py     # teste 14 contra o Google real + descoberta + JWKS
 ```
@@ -92,7 +92,7 @@ python scripts\teste_userinfo_google.py     # teste 14 contra o Google real + de
 | 11 | `redirect_uri` alterada | `/demo` → barra final, parâmetro extra, subcaminho: o Google mostra `redirect_uri_mismatch` e não redireciona |
 | 12 | 1 byte alterado na assinatura | `test_12_um_byte_alterado_na_assinatura_rejeitado` |
 | 13 | `/admin` com `role=user` | `test_13_admin_com_role_user_retorna_403` e no navegador |
-| 14 | `/userinfo` sem token/expirado | `scripts/teste_userinfo_google.py` (401 + `WWW-Authenticate: Bearer`) |
+| 14 | `/userinfo` sem token/expirado | `test_14*` e `scripts/teste_userinfo_google.py`: o Google responde 401 mas **sem** `WWW-Authenticate`; o servidor de recursos da app (`/api/userinfo`) responde 401 + `WWW-Authenticate: Bearer` (RFC 6750) |
 | 15 | Força bruta | O formulário de senha é do Google, que aplica a própria proteção. Na app: `test_15_rate_limiting_no_login` (HTTP 429) |
 
 Os testes 9, 10 e 11 dependem do servidor de autorização. Na Opção 2 esse servidor é o Google,
@@ -106,10 +106,10 @@ app/
   oidc.py        PKCE, descoberta, JWKS (cache e rotação), /token, /userinfo, validate_id_token()
   db.py          tabela users (4.1), sessões server-side, auditoria
   security.py    sessão (cookie __Host-sid), rate limiting, login_required/role_required
-  routes.py      /login, /callback, /perfil, /admin, /logout, /demo
+  routes.py      /login, /callback, /perfil, /admin, /logout, /demo, /api/userinfo (Bearer)
   templates/     páginas renderizadas no servidor (sem JavaScript)
 scripts/         gerar_certificado.py, gerenciar_usuarios.py, teste_userinfo_google.py
-tests/           59 testes pytest (Google simulado com par de chaves RSA próprio)
+tests/           69 testes pytest (Google simulado com par de chaves RSA próprio)
 colecao/         coleção do Postman
 ```
 
@@ -133,5 +133,6 @@ colecao/         coleção do Postman
   que é opaco, nunca é decodificado.
 - **Tempo de vida**: o ID Token do Google vale cerca de 1 h, mas só é usado no instante do login;
   a duração da sessão é controlada pela própria aplicação.
+- **Servidor de recursos**: `/api/userinfo` aceita o access token do Google só se o `tokeninfo` confirmar que ele foi emitido para este client_id e ainda vale; erros seguem o RFC 6750 (`WWW-Authenticate: Bearer`, `invalid_token`, `invalid_request`).
 - **Logs**: `logs/app.log` registra as três partes decodificadas do ID Token, como pede o passo 7.
   Access token e client secret nunca vão para o log.

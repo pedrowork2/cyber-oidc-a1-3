@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, g, render_template
@@ -13,7 +14,21 @@ from .oidc import GoogleProvider
 from .security import RateLimiter, SessionManager
 
 
+class RedactSecretsFilter(logging.Filter):
+    """O log de acesso do Werkzeug grava a URL completa; o code e o state do
+    callback não devem ir para o log (mesmo sendo de uso único)."""
+    PATTERN = re.compile(r"\b(code|state|code_verifier|access_token|id_token)=[^&\s\"]+")
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        redacted = self.PATTERN.sub(r"\1=[REDACTED]", msg)
+        if redacted != msg:
+            record.msg, record.args = redacted, None
+        return True
+
+
 def _setup_logging(log_dir: str = "logs") -> None:
+    logging.getLogger("werkzeug").addFilter(RedactSecretsFilter())
     root = logging.getLogger()
     if any(getattr(h, "_oidc", False) for h in root.handlers):
         return
@@ -46,6 +61,7 @@ def create_app(config: Config | None = None, provider=None, setup_logging: bool 
         _setup_logging()
 
     app = Flask(__name__)
+    app.json.ensure_ascii = False  # acentos legíveis nos quadros JSON das demos
     # A sessão do Flask (cookie assinado) NÃO é usada; usamos sessão server-side própria.
     app.config.update(SECRET_KEY=os.urandom(32), SESSION_COOKIE_SECURE=True)
 

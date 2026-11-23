@@ -5,8 +5,8 @@ import json
 import logging
 import time
 
-from flask import (Blueprint, abort, current_app, g, redirect, render_template, request,
-                   url_for)
+from flask import (Blueprint, abort, current_app, g, jsonify, redirect, render_template,
+                   request, url_for)
 
 from .oidc import (ProviderError, TokenValidationError, ValidationReport, constant_time_equals,
                    pkce_pair, random_token, split_jwt, validate_id_token)
@@ -117,6 +117,13 @@ def callback():
                      f"state ausente/divergente (recebidos={len(states)}) — possível CSRF; "
                      "fluxo abortado antes da troca do code")
 
+    # RFC 9207: o Google devolve o emissor no callback; se vier, deve ser o esperado
+    # (defesa contra o ataque de "mix-up" entre provedores).
+    iss_param = request.args.getlist("iss")
+    if len(iss_param) > 1 or (iss_param and iss_param[0] not in provider.issuers):
+        return _fail(400, "Requisição inválida", "Não foi possível validar o retorno do login.",
+                     "iss_callback_invalido", f"iss no callback={iss_param}")
+
     codes = request.args.getlist("code")
     if len(codes) != 1 or not codes[0]:
         return _fail(400, "Requisição inválida", "Retorno do login incompleto.",
@@ -132,6 +139,8 @@ def callback():
     except ProviderError as exc:
         detail = f"status={exc.status} error={exc.oauth_error} body={exc.body}"
         if demo:
+            log.info("DEMO %s: token_endpoint recusou: %s", demo, detail)
+            _ext("db").audit("demo_" + demo, detail)
             return render_template("demo_resultado.html", demo=demo, titulo="Troca do code recusada",
                                    resultado={"status_http": exc.status, "resposta": exc.body})
         return _fail(502, "Falha no login", "Não foi possível concluir o login agora.",
@@ -231,13 +240,25 @@ def callback():
 
 
 def _demo_reuse_code(provider, code, tx, first_tokens):
-    """Teste negativo 9 (DEMO_MODE): reapresenta o mesmo code e observa o provedor."""
-    result = {}
-    try:
-        provider.exchange_code(code, tx["code_verifier"], tx["redirect_uri"])
-        result["segunda_troca"] = "ACEITA (inesperado!)"
-    except ProviderError as exc:
-        result["segunda_troca"] = {"status_http": exc.status, "resposta": exc.body}
+    """Teste negativo 9 (DEMO_MODE): reapresenta o mesmo code e observa o provedor.
+
+    O OIDC tolera reuso dentro de uma janela muito curta (consistência eventual
+    no provedor), então tentamos de imediato e depois de alguns segundos.
+    """
+    result = {"tentativas_de_reuso": []}
+    started = time.time()
+    for delay in (0, 3, 10):
+        time.sleep(max(0.0, started + delay - time.time()))
+        attempt = {"apos_segundos": round(time.time() - started, 1)}
+        try:
+            provider.exchange_code(code, tx["code_verifier"], tx["redirect_uri"])
+            attempt["resultado"] = "ACEITA pelo provedor"
+        except ProviderError as exc:
+            attempt["resultado"] = "RECUSADA"
+            attempt["status_http"], attempt["resposta"] = exc.status, exc.body
+        result["tentativas_de_reuso"].append(attempt)
+        if attempt["resultado"] == "RECUSADA":
+            break
     # O RFC 6749 §4.1.2 diz que o servidor DEVERIA revogar os tokens emitidos a partir do code.
     try:
         provider.userinfo(first_tokens["access_token"])
@@ -264,6 +285,68 @@ def perfil():
 @role_required("admin")
 def admin():
     return render_template("admin.html", users=_ext("db").list_users())
+
+
+REALM = "app-oidc-33506"
+
+
+def _bearer_error(status: int, error: str | None = None, description: str | None = None):
+    """Resposta de erro do RFC 6750 §3: sempre com WWW-Authenticate: Bearer."""
+    challenge = f'Bearer realm="{REALM}"'
+    body = {}
+    if error:
+        challenge += f', error="{error}"'
+        body["error"] = error
+        if description:
+            challenge += f', error_description="{description}"'
+            body["error_description"] = description
+    resp = jsonify(body)
+    resp.status_code = status
+    resp.headers["WWW-Authenticate"] = challenge
+    return resp
+
+
+@bp.get("/api/userinfo")
+@rate_limited
+def api_userinfo():
+    """Servidor de recursos protegido por Bearer (RFC 6750) — teste negativo 14.
+
+    Aceita o access token do Google apenas se ele foi emitido para ESTE client_id
+    (evita aceitar token emitido para outra aplicação) e ainda está válido.
+    """
+    cfg, provider = _ext("config"), _ext("provider")
+    auth = request.headers.get("Authorization", "")
+    if not auth:
+        return _bearer_error(401)  # RFC 6750 §3.1: sem token → sem código de erro
+    scheme, _, token = auth.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip() or " " in token.strip():
+        return _bearer_error(400, "invalid_request", "Authorization malformado")
+    token = token.strip()
+    try:
+        info = provider.tokeninfo(token)
+    except ProviderError as exc:
+        if exc.status is None:  # falha de rede: não dá para afirmar que o token é inválido
+            resp = jsonify({"error": "temporarily_unavailable"})
+            resp.status_code = 503
+            return resp
+        return _bearer_error(401, "invalid_token", "token invalido ou expirado")
+    if cfg.client_id not in (info.get("aud"), info.get("azp")):
+        return _bearer_error(401, "invalid_token", "token emitido para outro cliente")
+    try:
+        expires_in = int(info.get("expires_in", 0))
+    except (TypeError, ValueError):
+        expires_in = 0
+    if expires_in <= 0:
+        return _bearer_error(401, "invalid_token", "token expirado")
+    scopes = str(info.get("scope", "")).split()
+    if not any(s in scopes for s in ("openid", "email", "profile",
+                                     "https://www.googleapis.com/auth/userinfo.email")):
+        return _bearer_error(403, "insufficient_scope", "escopo openid ausente")
+    try:
+        ui = provider.userinfo(token)
+    except ProviderError:
+        return _bearer_error(401, "invalid_token", "token recusado pelo provedor")
+    return jsonify({"sub": ui.get("sub"), "name": ui.get("name"), "email": ui.get("email")})
 
 
 @bp.get("/demo")

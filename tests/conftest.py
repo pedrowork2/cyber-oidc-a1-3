@@ -112,8 +112,18 @@ class FakeProvider:
         return {"access_token": "ya29.opaco", "token_type": "Bearer", "expires_in": 3599,
                 "id_token": self.factory.sign(claims)}
 
+    tokeninfo_aud = CLIENT_ID
+    tokeninfo_expires_in = 3500
+
+    def tokeninfo(self, access_token):
+        if access_token != "ya29.opaco":
+            raise ProviderError("token inválido", status=400)
+        return {"aud": self.tokeninfo_aud, "azp": self.tokeninfo_aud,
+                "expires_in": str(self.tokeninfo_expires_in), "scope": "openid email profile"}
+
     def userinfo(self, access_token):
-        return {"sub": self.userinfo_sub or self.sub, "name": "Joao Silva"}
+        return {"sub": self.userinfo_sub or self.sub, "name": "Joao Silva",
+                "email": "joao.silva@example.com"}
 
 
 @pytest.fixture

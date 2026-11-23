@@ -93,6 +93,30 @@ def test_08_state_repetido_aborta(client, provider):
     assert r.status_code == 400 and provider.exchange_calls == []
 
 
+def test_iss_do_callback_rfc9207_de_outro_emissor_aborta(client, provider):
+    q = start_login(client)
+    r = client.get("/callback", query_string={"code": "code-valido", "state": q["state"][0],
+                                              "iss": "https://evil.example"}, base_url=HTTPS)
+    assert r.status_code == 400 and provider.exchange_calls == []
+
+
+def test_iss_do_callback_correto_aceito(client, provider):
+    q = start_login(client)
+    r = client.get("/callback", query_string={"code": "code-valido", "state": q["state"][0],
+                                              "iss": "https://accounts.google.com"}, base_url=HTTPS)
+    assert r.status_code == 302
+
+
+def test_log_de_acesso_nao_grava_code_nem_state():
+    import logging
+    from app import RedactSecretsFilter
+    rec = logging.LogRecord("werkzeug", logging.INFO, "", 0,
+                            '"GET /callback?state=abc123&iss=x&code=4/0AUn6Hd HTTP/1.1" 302 -', None, None)
+    RedactSecretsFilter().filter(rec)
+    assert "abc123" not in rec.getMessage() and "4/0AUn6Hd" not in rec.getMessage()
+    assert "state=[REDACTED]" in rec.getMessage() and "iss=x" in rec.getMessage()
+
+
 def test_callback_sem_transacao_de_login(client, provider):
     r = client.get("/callback", query_string={"code": "code-valido", "state": "x"}, base_url=HTTPS)
     assert r.status_code == 400 and provider.exchange_calls == []
