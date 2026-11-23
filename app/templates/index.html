@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Autenticação e Autorização com OpenID Connect</h1>
+  <p class="muted">Fluxo Authorization Code + PKCE (S256), com o Google como OpenID Provider.
+    A senha é digitada apenas na página do Google: esta aplicação nunca a vê.</p>
+  {% if user %}
+    <p>Você está conectado como <strong>{{ user['full_name'] or user['user_name'] }}</strong>.</p>
+    <a class="btn" href="{{ url_for('main.perfil') }}">Ver perfil</a>
+  {% else %}
+    <a class="btn" href="{{ url_for('main.login') }}">Entrar com Google</a>
+  {% endif %}
+</div>
+<div class="card">
+  <h2>Rotas</h2>
+  <table>
+    <tr><th>Rota</th><th>Acesso</th></tr>
+    <tr><td><code>/perfil</code></td><td>Qualquer usuário autenticado</td></tr>
+    <tr><td><code>/admin</code></td><td>Somente <code>role = admin</code> (demais recebem HTTP 403)</td></tr>
+  </table>
+</div>
+{% endblock %}

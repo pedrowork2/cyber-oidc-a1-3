@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Área administrativa</h1>
+  <p class="muted">Rota liberada somente para <code>role = admin</code>, verificado no servidor a cada requisição.</p>
+  <table>
+    <tr><th>id</th><th>user_name</th><th>full_name</th><th>oidc_sub</th><th>role</th><th>created_at</th></tr>
+    {% for u in users %}
+    <tr><td>{{ u['id'] }}</td><td>{{ u['user_name'] }}</td><td>{{ u['full_name'] }}</td>
+        <td><code>{{ u['oidc_sub'] }}</code></td><td>{{ u['role'] }}</td><td>{{ u['created_at'] }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

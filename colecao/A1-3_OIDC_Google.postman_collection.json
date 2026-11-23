@@ -1,0 +1,499 @@
+{
+  "info": {
+    "name": "A1-3 Cyber Security 33506 — OIDC (Opção 2: Google)",
+    "description": "Coleção dos endpoints usados no fluxo Authorization Code + PKCE. Preencha as variáveis da coleção (client_id e client_secret vêm do .env; NÃO salve segredos reais no arquivo versionado). code/code_verifier podem ser obtidos do log da aplicação com DEMO_MODE=true ou gerando o par PKCE manualmente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "client_id",
+      "value": "seu-client-id.apps.googleusercontent.com"
+    },
+    {
+      "key": "client_secret",
+      "value": ""
+    },
+    {
+      "key": "redirect_uri",
+      "value": "https://localhost:8443/callback"
+    },
+    {
+      "key": "app",
+      "value": "https://localhost:8443"
+    },
+    {
+      "key": "code",
+      "value": ""
+    },
+    {
+      "key": "code_verifier",
+      "value": ""
+    },
+    {
+      "key": "code_challenge",
+      "value": ""
+    },
+    {
+      "key": "state",
+      "value": ""
+    },
+    {
+      "key": "nonce",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Provedor (Google)",
+      "item": [
+        {
+          "name": "Descoberta OIDC",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://accounts.google.com/.well-known/openid-configuration"
+            },
+            "description": "Metadados: issuer, endpoints, jwks_uri, S256, RS256.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "JWKS — chaves públicas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://www.googleapis.com/oauth2/v3/certs"
+            },
+            "description": "Chaves RSA com kid, kty, use, alg.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Authorize (abrir no navegador)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}&scope=openid%20profile%20email&state={{state}}&nonce={{nonce}}&code_challenge={{code_challenge}}&code_challenge_method=S256",
+              "query": [
+                {
+                  "key": "response_type",
+                  "value": "code"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}"
+                },
+                {
+                  "key": "scope",
+                  "value": "openid%20profile%20email"
+                },
+                {
+                  "key": "state",
+                  "value": "{{state}}"
+                },
+                {
+                  "key": "nonce",
+                  "value": "{{nonce}}"
+                },
+                {
+                  "key": "code_challenge",
+                  "value": "{{code_challenge}}"
+                },
+                {
+                  "key": "code_challenge_method",
+                  "value": "S256"
+                }
+              ]
+            },
+            "description": "Copie a URL e abra no navegador. O Google redireciona para redirect_uri com code e state.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Token — troca do code (client_secret_basic)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "https://oauth2.googleapis.com/token"
+            },
+            "description": "Esperado: 200 com access_token, id_token, Cache-Control: no-store.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{code}}",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code_verifier",
+                  "value": "{{code_verifier}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Userinfo com Bearer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://openidconnect.googleapis.com/v1/userinfo"
+            },
+            "description": "sub deve ser igual ao do ID Token.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Testes negativos contra o Google",
+      "item": [
+        {
+          "name": "Teste 9 — reutilizar o mesmo code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "https://oauth2.googleapis.com/token"
+            },
+            "description": "Reenvie a mesma requisição de troca. Esperado: 400 invalid_grant.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{code}}",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code_verifier",
+                  "value": "{{code_verifier}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Teste 10 — code_verifier incorreto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "https://oauth2.googleapis.com/token"
+            },
+            "description": "Esperado: 400 invalid_grant.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{code}}",
+                  "type": "text"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{redirect_uri}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code_verifier",
+                  "value": "verifier-incorreto-0000000000000000000000000000000",
+                  "type": "text"
+                }
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{client_secret}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Teste 11 — redirect_uri com barra final (abrir no navegador)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={{client_id}}&redirect_uri=https://localhost:8443/callback/&scope=openid&state=x&nonce=y&code_challenge={{code_challenge}}&code_challenge_method=S256",
+              "query": [
+                {
+                  "key": "response_type",
+                  "value": "code"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "redirect_uri",
+                  "value": "https://localhost:8443/callback/"
+                },
+                {
+                  "key": "scope",
+                  "value": "openid"
+                },
+                {
+                  "key": "state",
+                  "value": "x"
+                },
+                {
+                  "key": "nonce",
+                  "value": "y"
+                },
+                {
+                  "key": "code_challenge",
+                  "value": "{{code_challenge}}"
+                },
+                {
+                  "key": "code_challenge_method",
+                  "value": "S256"
+                }
+              ]
+            },
+            "description": "Esperado: página de erro redirect_uri_mismatch, sem redirecionar.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Teste 14a — userinfo sem token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://openidconnect.googleapis.com/v1/userinfo"
+            },
+            "description": "Esperado: 401 + WWW-Authenticate: Bearer.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Teste 14b — userinfo com token inválido",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer ya29.invalido"
+              }
+            ],
+            "url": {
+              "raw": "https://openidconnect.googleapis.com/v1/userinfo"
+            },
+            "description": "Esperado: 401 + WWW-Authenticate: Bearer error=\"invalid_token\".",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Aplicação (cliente)",
+      "item": [
+        {
+          "name": "Home",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/"
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Iniciar login (302 para o Google)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/login"
+            },
+            "description": "Desative 'Automatically follow redirects' para ver o Location e o Set-Cookie __Host-sid.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Teste 8 — callback com state forjado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/callback?code=qualquer&state=forjado",
+              "query": [
+                {
+                  "key": "code",
+                  "value": "qualquer"
+                },
+                {
+                  "key": "state",
+                  "value": "forjado"
+                }
+              ]
+            },
+            "description": "Esperado: 400; o token_endpoint não é chamado.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "/perfil sem sessão",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/perfil"
+            },
+            "description": "Esperado: 401.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "/admin sem sessão",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/admin"
+            },
+            "description": "Esperado: 401 (com sessão role=user: 403).",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Teste 15 — /login repetido (rate limiting)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{app}}/login"
+            },
+            "description": "Use o Collection Runner com 15 iterações: a partir da 11ª no mesmo minuto, HTTP 429.",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

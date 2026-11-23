@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>{{ user['full_name'] or user['user_name'] }}</h1>
+  <table>
+    <tr><th>id interno</th><td>{{ user['id'] }}</td></tr>
+    <tr><th>user_name</th><td>{{ user['user_name'] }}</td></tr>
+    <tr><th>full_name</th><td>{{ user['full_name'] }}</td></tr>
+    <tr><th>oidc_iss</th><td><code>{{ user['oidc_iss'] }}</code></td></tr>
+    <tr><th>oidc_sub</th><td><code>{{ user['oidc_sub'] }}</code></td></tr>
+    <tr><th>role</th><td>{{ user['role'] }}</td></tr>
+    <tr><th>created_at</th><td>{{ user['created_at'] }}</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Checklist de validação do ID Token (item 4.3) — último login</h2>
+  <table>
+    <tr><th>#</th><th>Verificação</th><th>Resultado</th><th>Evidência</th></tr>
+    {% for c in checklist %}
+    <tr><td>{{ c.numero }}</td><td>{{ c.item }}</td>
+        <td class="{{ 'ok' if c.ok else 'bad' }}">{{ 'OK' if c.ok else 'FALHA' }}</td>
+        <td>{{ c.detalhe }}</td></tr>
+    {% endfor %}
+  </table>
+  <p class="muted">As três partes decodificadas do ID Token ficam no log do servidor (<code>logs/app.log</code>),
+    nunca no navegador.</p>
+</div>
+
+{% if demo_info %}
+<div class="card">
+  <h2>Demo — teste negativo 9 (reuso do authorization code)</h2>
+  <pre>{{ demo_info | tojson(indent=2) }}</pre>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <p class="muted">Demo: {{ demo }}</p>
+  <h1>{{ titulo }}</h1>
+  <p>Nenhuma sessão foi criada.</p>
+  <pre>{{ resultado | tojson(indent=2) }}</pre>
+  {% if checklist %}
+  <table>
+    <tr><th>#</th><th>Verificação</th><th>Resultado</th><th>Evidência</th></tr>
+    {% for c in checklist %}
+    <tr><td>{{ c.numero }}</td><td>{{ c.item }}</td>
+        <td class="{{ 'ok' if c.ok else 'bad' }}">{{ 'OK' if c.ok else 'FALHA' }}</td><td>{{ c.detalhe }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <p><a class="btn secondary" href="{{ url_for('main.demo') }}">Voltar às demos</a></p>
+</div>
+{% endblock %}

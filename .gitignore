@@ -1,0 +1,17 @@
+# Segredos — NUNCA versionar (enunciado 1.2)
+.env
+*.pem
+*.key
+certs/
+
+# Banco local e logs
+*.db
+*.sqlite3
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/

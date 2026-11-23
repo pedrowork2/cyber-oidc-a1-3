@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Modo demonstração — testes negativos ao vivo</h1>
+  <p class="muted">Disponível apenas com <code>DEMO_MODE=true</code>. Cada link inicia um login real com o Google,
+    alterando de propósito um único parâmetro.</p>
+  <ul class="demo">
+    <li><a href="{{ url_for('main.login', demo='reuso_code') }}">Teste 9 — reutilizar o mesmo authorization code</a></li>
+    <li><a href="{{ url_for('main.login', demo='verifier_errado') }}">Teste 10 — code_verifier incorreto no /token</a></li>
+    <li><a href="{{ url_for('main.login', demo='redirect_barra') }}">Teste 11a — redirect_uri com barra final extra</a></li>
+    <li><a href="{{ url_for('main.login', demo='redirect_param') }}">Teste 11b — redirect_uri com parâmetro adicional</a></li>
+    <li><a href="{{ url_for('main.login', demo='redirect_subcaminho') }}">Teste 11c — redirect_uri com subcaminho</a></li>
+    <li><a href="{{ url_for('main.login', demo='nonce_errado') }}">Teste 7 (ao vivo) — nonce diferente do enviado</a></li>
+  </ul>
+  <p class="muted">Teste 8: depois de clicar em "Entrar", edite o parâmetro <code>state</code> na URL do callback
+    antes de o navegador carregá-la (ou rode <code>pytest -k state</code>).</p>
+</div>
+{% endblock %}

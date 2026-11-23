@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cyber Security 33506 — OIDC{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="{{ url_for('main.index') }}">🔐 App OIDC · 33506</a>
+  <nav>
+    {% if user %}
+      <a href="{{ url_for('main.perfil') }}">Perfil</a>
+      <a href="{{ url_for('main.admin') }}">Admin</a>
+      {% if demo_mode %}<a href="{{ url_for('main.demo') }}">Demo</a>{% endif %}
+      <span class="badge {{ 'admin' if user['role'] == 'admin' }}">{{ user['user_name'] }} · {{ user['role'] }}</span>
+      <form class="inline" method="post" action="{{ url_for('main.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn secondary" type="submit">Sair</button>
+      </form>
+    {% else %}
+      {% if demo_mode %}<a href="{{ url_for('main.demo') }}">Demo</a>{% endif %}
+      <a class="btn" href="{{ url_for('main.login') }}">Entrar com Google</a>
+    {% endif %}
+  </nav>
+</div></header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
