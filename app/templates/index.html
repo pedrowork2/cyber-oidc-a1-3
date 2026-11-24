@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
@@ -11,6 +12,7 @@
     <a class="btn" href="{{ url_for('main.login') }}">Entrar com Google</a>
   {% endif %}
 </div>
+
 <div class="card">
   <h2>Rotas</h2>
   <table>
@@ -18,5 +20,25 @@
     <tr><td><code>/perfil</code></td><td>Qualquer usuário autenticado</td></tr>
     <tr><td><code>/admin</code></td><td>Somente <code>role = admin</code> (demais recebem HTTP 403)</td></tr>
   </table>
+</div>
+
+<div class="card">
+  <h2>Boas práticas de segurança digital</h2>
+  <p class="muted">
+    Algumas medidas simples ajudam a proteger suas informações
+    pessoais e reduzir os riscos de ataques cibernéticos.
+  </p>
+  <ul>
+    <li>Ative a autenticação em dois fatores na sua conta Google.</li>
+    <li>Verifique o endereço da página antes de realizar o login.</li>
+    <li>Nunca compartilhe senhas ou tokens de acesso.</li>
+    <li>Encerre a sessão ao utilizar computadores compartilhados.</li>
+    <li>Mantenha seu navegador e sistema operacional atualizados.</li>
+    <li>Desconfie de links e mensagens de origem desconhecida.</li>
+  </ul>
+  <p class="muted">
+    A segurança digital é uma responsabilidade compartilhada
+    entre a aplicação e seus usuários.
+  </p>
 </div>
 {% endblock %}
