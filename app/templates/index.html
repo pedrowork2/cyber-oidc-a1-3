@@ -4,6 +4,7 @@
   <h1>Autenticação e Autorização com OpenID Connect</h1>
   <p class="muted">Fluxo Authorization Code + PKCE (S256), com o Google como OpenID Provider.
     A senha é digitada apenas na página do Google: esta aplicação nunca a vê.</p>
+  <p class="muted">Projeto desenvolvido em grupo para a disciplina Cyber Security 33506 (A1/3).</p>
   {% if user %}
     <p>Você está conectado como <strong>{{ user['full_name'] or user['user_name'] }}</strong>.</p>
     <a class="btn" href="{{ url_for('main.perfil') }}">Ver perfil</a>
